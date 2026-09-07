@@ -1,0 +1,35 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# Kubernetes / Helm
+*.tgz
+
+# Python (scan scripts)
+.venv/
+__pycache__/
+*.pyc
+
+# Node (if dashboard/tooling is JS)
+node_modules/
+
+# Scan reports and artifacts, not meant to be versioned
+reports/
+*.sarif
+*.sbom.json
+
+# Secrets, local env
+.env
+*.pem
+*.key
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
