@@ -1,0 +1,43 @@
+# Runs one scan and exits. The revision suffix gives each upgrade a fresh job,
+# because a job spec cannot be modified once created.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: trivy-scan-{{ .Release.Revision }}
+spec:
+  # Delete the finished job after one hour so old scans do not pile up
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 1
+  template:
+    spec:
+      # Mandatory for a job, the pod must not be restarted after it finishes
+      restartPolicy: Never
+      containers:
+        - name: trivy
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          args:
+            - image
+            - --quiet
+            - --scanners
+            - vuln
+            - --pkg-types
+            - {{ .Values.pkgTypes | quote }}
+            - --severity
+            - {{ .Values.severity | quote }}
+            - --format
+            - json
+            - {{ .Values.target.image | quote }}
+          volumeMounts:
+            - name: cache
+              mountPath: /root/.cache/trivy
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
+      volumes:
+        # Trivy downloads a vulnerability database on each run, keep it out of
+        # the container filesystem
+        - name: cache
+          emptyDir: {}

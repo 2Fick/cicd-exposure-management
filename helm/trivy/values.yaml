@@ -1,0 +1,12 @@
+image:
+  repository: aquasec/trivy
+  tag: "0.74.0"
+
+target:
+  # Old image on purpose, it carries plenty of known CVEs for the demo
+  image: "nginx:1.14.2"
+
+# Only report what would actually block a build
+severity: "HIGH,CRITICAL"
+
+pkgTypes: "os"
