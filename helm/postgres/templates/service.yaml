@@ -1,0 +1,18 @@
+# Gives the postgres pod a stable DNS name for the other components to connect to
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  # None makes this a headless service: no virtual IP, DNS resolves to the pod
+  clusterIP: None
+  # Finds the pod by label, same label the statefulset puts on it
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: {{ .Values.service.port }}
+      # Refers to the port named "postgres" in the container spec
+      targetPort: postgres
+
+  

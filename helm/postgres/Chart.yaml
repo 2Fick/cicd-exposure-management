@@ -1,0 +1,8 @@
+# Identity card of the chart
+apiVersion: v2
+name: postgres
+description: Postgres database storing scan results for the exposure dashboard
+type: application
+version: 0.1.0
+appVersion: "16"
+

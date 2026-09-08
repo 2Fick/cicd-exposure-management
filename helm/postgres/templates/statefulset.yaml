@@ -1,0 +1,75 @@
+# run the psotgres pod and keeps it data on persistent volume
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+
+spec: 
+  # must match the name of the headless service, so the pod gets a stable DNS name
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - name: postgres
+              containerPort: {{ .Values.service.port}}
+          
+          # pull posgres user, pwd and db from the secret
+          envFrom:
+            - secretRef:
+                name: postgres-credentials
+          env:
+            # Postgres refuses to initialize in a volume root that already
+            # contains lost + found, so point it at a subdirectory
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+          - name: data
+            mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.database.user }}
+                - -d
+                - {{ .Values.database.name }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.database.user }}
+                - -d
+                - {{ .Values.database.name }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+  # A StatefulSet creates the PVC itself, so there is no separate pvc.yaml
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.storage.size }}
+
+
