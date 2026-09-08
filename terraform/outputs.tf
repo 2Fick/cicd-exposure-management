@@ -1,3 +1,4 @@
+# Outputs expose values from your resources after `terraform apply`,
 output "cluster_name" {
     description = "Name of the kind cluster that was created"
     value       = kind_cluster.this.name
