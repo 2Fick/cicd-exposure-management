@@ -14,5 +14,3 @@ spec:
       port: {{ .Values.service.port }}
       # Refers to the port named "postgres" in the container spec
       targetPort: postgres
-
-  
