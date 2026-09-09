@@ -1,18 +1,14 @@
-# Runs one scan and exits. The revision suffix gives each upgrade a fresh job,
-# because a job spec cannot be modified once created.
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: trivy-scan-{{ .Release.Revision }}
 spec:
-  # Delete the finished job after one hour so old scans do not pile up
   ttlSecondsAfterFinished: 3600
   backoffLimit: 1
   template:
     spec:
-      # Mandatory for a job, the pod must not be restarted after it finishes
       restartPolicy: Never
-      containers:
+      initContainers:
         - name: trivy
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           args:
@@ -26,18 +22,64 @@ spec:
             - {{ .Values.severity | quote }}
             - --format
             - json
+            - --output
+            - /reports/scan.json
             - {{ .Values.target.image | quote }}
           volumeMounts:
             - name: cache
               mountPath: /root/.cache/trivy
+            - name: reports
+              mountPath: /reports
           resources:
             requests:
               cpu: 200m
               memory: 512Mi
             limits:
+
               memory: 2Gi
+      containers:
+        - name: loader
+          image: "{{ .Values.loader.repository }}:{{ .Values.loader.tag }}"
+          command:
+            - psql
+            - -v
+            - ON_ERROR_STOP=1
+            - -f
+            - /sql/load.sql
+          env:
+            - name: PGHOST
+              value: {{ .Values.database.host | quote }}
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secret }}
+                  key: POSTGRES_USER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secret }}
+                  key: POSTGRES_PASSWORD
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secret }}
+                  key: POSTGRES_DB
+          volumeMounts:
+            - name: reports
+              mountPath: /reports
+            - name: sql
+              mountPath: /sql
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
       volumes:
-        # Trivy downloads a vulnerability database on each run, keep it out of
-        # the container filesystem
         - name: cache
           emptyDir: {}
+        - name: reports
+          emptyDir: {}
+        - name: sql
+          configMap:
+            name: trivy-loader-sql

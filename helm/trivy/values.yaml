@@ -10,3 +10,11 @@ target:
 severity: "HIGH,CRITICAL"
 
 pkgTypes: "os"
+
+loader:
+  repository: postgres
+  tag: "16"
+
+database:
+  host: postgres
+  secret: postgres-credentials

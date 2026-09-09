@@ -1,0 +1,36 @@
+# The sql that turns one trivy report into rows
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trivy-loader-sql
+data:
+  load.sql: |
+    \set doc `cat /reports/scan.json`
+
+    BEGIN;
+
+    WITH new_scan AS (
+        INSERT INTO scans (scanner, target, target_type, scanned_at)
+        SELECT 'trivy',
+               :'doc'::jsonb ->> 'ArtifactName',
+               :'doc'::jsonb ->> 'ArtifactType',
+               (:'doc'::jsonb ->> 'CreatedAt')::timestamptz
+        RETURNING id
+    )
+    INSERT INTO vulnerabilities (
+        scan_id, cve_id, package_name, installed_version,
+        fixed_version, severity, title, primary_url
+    )
+    SELECT s.id,
+           v ->> 'VulnerabilityID',
+           v ->> 'PkgName',
+           v ->> 'InstalledVersion',
+           v ->> 'FixedVersion',
+           v ->> 'Severity',
+           v ->> 'Title',
+           v ->> 'PrimaryURL'
+    FROM new_scan s,
+         jsonb_array_elements(:'doc'::jsonb -> 'Results') AS r,
+         jsonb_array_elements(COALESCE(r -> 'Vulnerabilities', '[]'::jsonb)) AS v;
+
+    COMMIT;
