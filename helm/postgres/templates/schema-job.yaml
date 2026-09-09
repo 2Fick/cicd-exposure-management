@@ -1,0 +1,57 @@
+# Applies the schema after every install and upgrade. It is a helm hook, so it
+# runs once the database itself is up rather than at the same time.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-schema
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    # Delete the previous run before starting a new one, a job spec is immutable
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  # The database may need a few seconds, let the job retry instead of failing
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: psql
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          # Stop on the first sql error instead of reporting success
+          command:
+            - psql
+            - -v
+            - ON_ERROR_STOP=1
+            - -f
+            - /schema/schema.sql
+          env:
+            - name: PGHOST
+              value: postgres
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_USER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_DB
+          volumeMounts:
+            - name: schema
+              mountPath: /schema
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: schema
+          configMap:
+            name: postgres-schema
