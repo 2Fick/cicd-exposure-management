@@ -1,0 +1,6 @@
+apiVersion: v2
+name: grafana
+description: Dashboard showing the exposure timeline from the scan results
+type: application
+version: 0.1.0
+appVersion: "13.0.8"

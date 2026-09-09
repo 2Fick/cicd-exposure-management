@@ -1,0 +1,17 @@
+image:
+  repository: grafana/grafana
+  tag: "13.0.8"
+
+admin:
+  user: admin
+
+service:
+  port: 3000
+
+# Connection details for the database the postgres chart deploys
+database:
+  host: postgres
+  port: 5432
+  name: scandata
+  user: scanuser
+  secret: postgres-credentials

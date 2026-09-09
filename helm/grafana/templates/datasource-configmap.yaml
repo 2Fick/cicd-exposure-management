@@ -1,0 +1,23 @@
+# Grafana reads this file at startup and creates the connection by itself,
+# so the datasource is versioned in git instead of clicked in the interface
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+data:
+  postgres.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: scandata
+        type: postgres
+        uid: scandata
+        access: proxy
+        isDefault: true
+        url: {{ .Values.database.host }}:{{ .Values.database.port }}
+        user: {{ .Values.database.user }}
+        jsonData:
+          database: {{ .Values.database.name }}
+          sslmode: disable
+        secureJsonData:
+          # Grafana expands this from the container environment at startup
+          password: $POSTGRES_PASSWORD

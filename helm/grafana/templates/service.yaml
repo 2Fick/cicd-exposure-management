@@ -1,0 +1,12 @@
+# Regular service with a cluster ip, unlike the headless one for postgres
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http

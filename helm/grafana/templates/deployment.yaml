@@ -1,0 +1,67 @@
+# Grafana keeps nothing worth saving here, its configuration comes from files,
+# so a deployment is enough where postgres needed a statefulset
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+      annotations:
+        # Provisioning files are only read at startup, so changing them must
+        # force a new pod. This checksum changes whenever the file changes.
+        checksum/datasource: {{ include (print $.Template.BasePath "/datasource-configmap.yaml") . | sha256sum }}
+    spec:
+      securityContext:
+        # The grafana image runs as user 472, this gives it write access to the
+        # mounted volume
+        fsGroup: 472
+      containers:
+        - name: grafana
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: {{ .Values.admin.user | quote }}
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-admin
+                  key: ADMIN_PASSWORD
+            # Referenced as $POSTGRES_PASSWORD in the datasource file
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secret }}
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: data
+              mountPath: /var/lib/grafana
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: datasources
+          configMap:
+            name: grafana-datasources
+        - name: data
+          emptyDir: {}
