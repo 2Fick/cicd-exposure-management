@@ -17,7 +17,7 @@ spec:
     spec:
       automountServiceAccountToken: false
       securityContext:
-        fsGroup: 70
+        fsGroup: 10001
       containers:
         - name: postgres
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -32,7 +32,7 @@ spec:
               value: /var/lib/postgresql/data/pgdata
           securityContext:
             runAsNonRoot: true
-            runAsUser: 70
+            runAsUser: 10001
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
