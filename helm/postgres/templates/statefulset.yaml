@@ -4,9 +4,7 @@ kind: StatefulSet
 metadata:
   name: postgres
   namespace: {{ .Values.namespace | default .Release.Namespace }}
-
-spec: 
-  # must match the name of the headless service, so the pod gets a stable DNS name
+spec:
   serviceName: postgres
   replicas: 1
   selector:
@@ -17,25 +15,39 @@ spec:
       labels:
         app: postgres
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 70
       containers:
         - name: postgres
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
             - name: postgres
-              containerPort: {{ .Values.service.port}}
-          
-          # pull posgres user, pwd and db from the secret
+              containerPort: {{ .Values.service.port }}
           envFrom:
             - secretRef:
                 name: postgres-credentials
           env:
-            # Postgres refuses to initialize in a volume root that already
-            # contains lost + found, so point it at a subdirectory
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 70
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           volumeMounts:
-          - name: data
-            mountPath: /var/lib/postgresql/data
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            # The root filesystem is read only, so the few directories postgres genuinely writes to are mounted as writable volumes
+            - name: run
+              mountPath: /var/run/postgresql
+            - name: tmp
+              mountPath: /tmp
           readinessProbe:
             exec:
               command:
@@ -61,8 +73,13 @@ spec:
               cpu: 100m
               memory: 256Mi
             limits:
+              cpu: 500m
               memory: 512Mi
-  # A StatefulSet creates the PVC itself, so there is no separate pvc.yaml
+      volumes:
+        - name: run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -72,5 +89,3 @@ spec:
         resources:
           requests:
             storage: {{ .Values.storage.size }}
-
-

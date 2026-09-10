@@ -1,5 +1,4 @@
-# Applies the schema after every install and upgrade. It is a helm hook, so it
-# runs once the database itself is up rather than at the same time.
+# Applies the schema after every install and upgrade. It is a helm hook, so it runs once the database itself is up rather than at the same time.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -7,18 +6,20 @@ metadata:
   namespace: {{ .Values.namespace | default .Release.Namespace }}
   annotations:
     "helm.sh/hook": post-install,post-upgrade
-    # Delete the previous run before starting a new one, a job spec is immutable
-    "helm.sh/hook-delete-policy": before-hook-creation
+    # hook-succeeded deletes the job once it worked, which stops finished pods from piling up and leaving orphans behind after an uninstall
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
-  # The database may need a few seconds, let the job retry instead of failing
-  backoffLimit: 3
+  # The database can take a while to accept connections on a cold start
+  backoffLimit: 6
   template:
     spec:
       restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 70
       containers:
         - name: psql
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          # Stop on the first sql error instead of reporting success
           command:
             - psql
             - -v
@@ -43,16 +44,31 @@ spec:
                 secretKeyRef:
                   name: postgres-credentials
                   key: POSTGRES_DB
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 70
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           volumeMounts:
             - name: schema
               mountPath: /schema
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 50m
               memory: 64Mi
             limits:
+              cpu: 200m
               memory: 128Mi
       volumes:
         - name: schema
           configMap:
             name: postgres-schema
+        - name: tmp
+          emptyDir: {}
