@@ -22,134 +22,146 @@ const L = {
   checkov: uri("checkov.png"),
 };
 
-const scanner = (logo, name, role) => `
-  <div class="tool">
-    <div class="chip"><img src="${L[logo]}" alt="${name}"></div>
-    <div class="tool-name">${name}</div>
-    <div class="tool-role">${role}</div>
-  </div>`;
+const tile = (logo, name) => `
+  <div class="tile"><img src="${L[logo]}" alt="${name}"><span>${name}</span></div>`;
 
-const node = (logo, title, sub, extra = "") => `
-  <div class="node" ${extra}>
-    <img src="${L[logo]}" alt="${title}">
-    <div><div class="node-title">${title}</div><div class="node-sub">${sub}</div></div>
-  </div>`;
+const step = (n, label) => `
+  <div class="step"><span class="num">${n}</span><span class="lbl">${label}</span></div>`;
 
 const html = `<!doctype html>
 <html><head><meta charset="utf-8"><style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    width: 1500px;
+    width: 1420px;
     font-family: "Segoe UI", system-ui, sans-serif;
-    background: #fbfbfd;
+    background: #fff;
     color: #16181d;
-    padding: 40px 48px 34px;
+    padding: 34px 40px 30px;
   }
-  h1 { font-size: 29px; font-weight: 650; letter-spacing: -0.4px; }
-  .sub { font-size: 14.5px; color: #6b7280; margin-top: 6px; margin-bottom: 26px; }
+  h1 { font-size: 25px; font-weight: 700; letter-spacing: -0.3px; }
+  .sub { font-size: 13.5px; color: #6b7280; margin-top: 4px; margin-bottom: 26px; }
 
-  .stage { border: 1.5px solid #d7dae0; border-radius: 14px; background: #fff; padding: 22px 22px 20px; position: relative; }
-  .stage-label {
-    position: absolute; top: -12px; left: 20px; background: #fff;
-    padding: 0 10px; font-size: 12.5px; font-weight: 650;
-    letter-spacing: 0.9px; text-transform: uppercase; color: #5b6270;
-    display: flex; align-items: center; gap: 7px;
+  .canvas { display: flex; align-items: flex-start; gap: 0; }
+
+  .group {
+    border: 1.5px solid #e08a2e; border-radius: 8px;
+    padding: 26px 18px 18px; position: relative; background: #fff;
+    display: flex; flex-direction: column; gap: 14px;
   }
-  .stage-label img { height: 15px; width: 15px; }
-  .stage-note { font-size: 12.5px; color: #6b7280; margin-top: 15px; }
-
-  .band { display: flex; align-items: center; gap: 16px; }
-  .band .node { flex: none; }
-
-  .flow { display: flex; align-items: center; justify-content: center; gap: 11px; padding: 13px 0; }
-  .flow-arrow { font-size: 21px; color: #b0b6c0; line-height: 1; }
-  .flow-label { font-size: 12.5px; color: #6b7280; font-weight: 550; }
-
-  .tools { display: flex; gap: 15px; }
-  .tool {
-    flex: 1; border: 1.5px solid #e3e6ec; border-radius: 11px;
-    padding: 15px 12px 14px; text-align: center; background: #fdfdfe;
+  .group > .gname {
+    position: absolute; top: 7px; left: 0; right: 0; text-align: center;
+    font-size: 12.5px; font-weight: 650; color: #d97b12; letter-spacing: 0.2px;
   }
-  .chip {
-    height: 46px; display: flex; align-items: center; justify-content: center;
+
+  .sub-group {
+    border: 1.5px dashed #b9bfc9; border-radius: 7px;
+    padding: 22px 14px 13px; position: relative;
   }
-  .chip img { max-height: 44px; max-width: 118px; object-fit: contain; }
-  .tool-name { font-size: 14.5px; font-weight: 620; margin-top: 7px; }
-  .tool-role { font-size: 12px; color: #6b7280; margin-top: 4px; line-height: 1.35; }
-
-  .node {
-    border: 1.5px solid #e3e6ec; border-radius: 11px; background: #fdfdfe;
-    padding: 14px 17px; display: flex; align-items: center; gap: 13px;
+  .sub-group > .sname {
+    position: absolute; top: 5px; left: 0; right: 0; text-align: center;
+    font-size: 11.5px; font-weight: 600; color: #5b6270;
   }
-  .node img { height: 33px; width: 33px; object-fit: contain; flex: none; }
-  .node-title { font-size: 14.5px; font-weight: 620; }
-  .node-sub { font-size: 12px; color: #6b7280; margin-top: 3px; line-height: 1.35; }
 
-  .verdicts { display: flex; gap: 14px; margin-top: 16px; }
-  .verdict { flex: 1; border-radius: 10px; padding: 11px 15px; font-size: 13.5px; font-weight: 600; }
-  .blocked { background: #fdeced; color: #a3242e; border: 1.5px solid #f3c3c7; }
-  .passed  { background: #eaf7ee; color: #1c6b33; border: 1.5px solid #bfe3c9; }
+  .tiles { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .tile { width: 96px; text-align: center; }
+  .tile img { height: 38px; width: auto; max-width: 76px; object-fit: contain; }
+  .tile span { display: block; font-size: 11.5px; font-weight: 600; margin-top: 7px; line-height: 1.25; }
 
-  .row { display: flex; align-items: center; gap: 16px; }
-  .arrow { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: none; }
-  .arrow-line { font-size: 23px; color: #b0b6c0; line-height: 1; }
-  .arrow-label { font-size: 11.5px; color: #6b7280; white-space: nowrap; }
-  .gap { height: 16px; }
+  .connector { align-self: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 6px; min-width: 132px; }
+  .connector .line { width: 100%; height: 1.5px; background: #9aa1ad; position: relative; }
+  .connector .line::after {
+    content: ""; position: absolute; right: -1px; top: -4px;
+    border-left: 8px solid #9aa1ad; border-top: 4.5px solid transparent; border-bottom: 4.5px solid transparent;
+  }
+  .step { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; }
+  .num {
+    width: 19px; height: 19px; border-radius: 50%; background: #16181d; color: #fff;
+    font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none;
+  }
+  .lbl { font-size: 11.5px; color: #3d434d; font-weight: 550; white-space: nowrap; }
+
+  .vconn { display: flex; align-items: center; gap: 8px; justify-content: center; padding: 3px 0; }
+  .vconn .down { font-size: 17px; color: #9aa1ad; line-height: 1; }
+
+  .verdicts { display: flex; flex-direction: column; gap: 7px; margin-top: 2px; }
+  .verdict { border-radius: 6px; padding: 7px 11px; font-size: 11.5px; font-weight: 650; text-align: center; }
+  .blocked { background: #fdeced; color: #a3242e; border: 1.5px solid #f0b9be; }
+  .passed  { background: #eaf7ee; color: #1c6b33; border: 1.5px solid #b6e0c2; }
 </style></head><body>
 
 <h1>CI/CD Pipeline Exposure Management</h1>
-<div class="sub">Four scanners guarding a pipeline, findings stored and charted over time, builds blocked on critical results.</div>
+<div class="sub">Four scanners gate every change, findings land in a database, the dashboard shows exposure over time.</div>
 
-<div class="stage">
-  <div class="stage-label">Source repository</div>
-  <div class="band">
-    ${node("terraform", "Terraform", "Cluster provisioning")}
-    ${node("helm", "Helm charts", "Written by hand, one per component")}
-    ${node("opa", "Rego policies", "Custom rules for this project")}
-  </div>
-</div>
+<div class="canvas">
 
-<div class="flow">
-  <span class="flow-arrow">&darr;</span>
-  <span class="flow-label">every push and every pull request</span>
-  <span class="flow-arrow">&darr;</span>
-</div>
+  <div class="group" style="width:236px">
+    <div class="gname">source repository</div>
+    <div class="sub-group">
+      <div class="sname">infrastructure as code</div>
+      <div class="tiles">${tile("terraform", "Terraform")}${tile("helm", "Helm charts")}</div>
+    </div>
+    <div class="sub-group">
+      <div class="sname">policy as code</div>
+      <div class="tiles">${tile("opa", "Rego rules")}</div>
+    </div>
+  </div>
 
-<div class="stage">
-  <div class="stage-label"><img src="${L.actions}" alt="">Continuous integration gate</div>
-  <div class="tools">
-    ${scanner("gitleaks", "Gitleaks", "Secrets across the full git history")}
-    ${scanner("checkov", "Checkov", "Misconfiguration in Terraform, Helm and Kubernetes")}
-    ${scanner("trivy", "Trivy", "Known CVEs in the deployed container images")}
-    ${scanner("opa", "OPA and Conftest", "Rules no vendor ships")}
+  <div class="connector">
+    ${step(1, "push, pull request")}
+    <div class="line"></div>
   </div>
-  <div class="verdicts">
-    <div class="verdict blocked">Critical finding &nbsp;&rarr;&nbsp; pull request refused, the build stops</div>
-    <div class="verdict passed">All clear &nbsp;&rarr;&nbsp; the change may be merged</div>
-  </div>
-</div>
 
-<div class="flow">
-  <span class="flow-arrow">&darr;</span>
-  <span class="flow-label">once merged, deployed with Helm</span>
-  <span class="flow-arrow">&darr;</span>
-</div>
+  <div class="group" style="width:322px">
+    <div class="gname">continuous integration gate</div>
+    <div class="sub-group">
+      <div class="sname">scanners, GitHub Actions</div>
+      <div class="tiles">
+        ${tile("gitleaks", "Gitleaks")}${tile("checkov", "Checkov")}
+        ${tile("trivy", "Trivy")}${tile("opa", "Conftest")}
+      </div>
+    </div>
+    <div class="verdicts">
+      <div class="verdict blocked">critical finding, build stops</div>
+      <div class="verdict passed">all clear, change merged</div>
+    </div>
+  </div>
 
-<div class="stage">
-  <div class="stage-label"><img src="${L.kubernetes}" alt="">Local Kubernetes cluster</div>
-  <div class="row" style="margin-bottom:16px">
-    ${node("terraform", "Terraform apply", "Creates the cluster itself, not just scanned by it")}
-    <div class="arrow"><div class="arrow-line">&rarr;</div><div class="arrow-label">creates</div></div>
-    ${node("docker", "kind, two nodes", "Runs on Docker, zero cost, no cloud account")}
+  <div class="connector">
+    ${step(2, "terraform apply")}
+    ${step(3, "helm install")}
+    <div class="line"></div>
   </div>
-  <div class="row">
-    ${node("trivy", "Scan jobs", "One Kubernetes Job per target image", 'style="flex:1"')}
-    <div class="arrow"><div class="arrow-line">&rarr;</div><div class="arrow-label">writes findings</div></div>
-    ${node("postgres", "PostgreSQL", "One row per finding, one row per scan", 'style="flex:1"')}
-    <div class="arrow"><div class="arrow-line">&rarr;</div><div class="arrow-label">queried by</div></div>
-    ${node("grafana", "Grafana", "Exposure timeline, provisioned from files", 'style="flex:1"')}
+
+  <div class="group" style="width:620px">
+    <div class="gname">local cluster, kind on Docker, namespace exposure</div>
+
+    <div class="sub-group">
+      <div class="sname">scan job, one per target image</div>
+      <div class="tiles" style="align-items:center">
+        ${tile("trivy", "Trivy initContainer")}
+        <div class="connector" style="min-width:104px">
+          ${step(4, "writes report")}
+          <div class="line"></div>
+        </div>
+        ${tile("postgres", "psql loader")}
+      </div>
+    </div>
+
+    <div class="vconn"><span class="num">5</span><span class="lbl">insert scan and findings</span><span class="down">&darr;</span></div>
+
+    <div class="sub-group">
+      <div class="sname">storage, StatefulSet with a persistent volume</div>
+      <div class="tiles">${tile("postgres", "PostgreSQL")}</div>
+    </div>
+
+    <div class="vconn"><span class="num">6</span><span class="lbl">queried by</span><span class="down">&darr;</span></div>
+
+    <div class="sub-group">
+      <div class="sname">dashboard, provisioned from files</div>
+      <div class="tiles">${tile("grafana", "Grafana")}</div>
+    </div>
   </div>
-  <div class="stage-note">Network policies restrict who may reach the database. Every container runs non root, with a read only filesystem and no Linux capabilities.</div>
+
 </div>
 
 </body></html>`;
