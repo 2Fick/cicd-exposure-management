@@ -7,9 +7,6 @@ spec:
   ttlSecondsAfterFinished: 3600
   backoffLimit: 1
   template:
-    metadata:
-      labels:
-        app: trivy
     spec:
       restartPolicy: Never
       automountServiceAccountToken: false
