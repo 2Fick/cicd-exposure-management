@@ -1,0 +1,64 @@
+name: security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  secrets:
+    name: Secrets in git history
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the full history
+        uses: actions/checkout@v4
+        with:
+          # Gitleaks reads every commit, not just the current files. The default
+          fetch-depth: 0
+
+      - name: Scan the git history for secrets
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.30.1 \
+            git /repo --redact
+
+  iac:
+    name: Infrastructure as code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Scan terraform, helm and kubernetes for misconfiguration
+        run: |
+          docker run --rm -v "$PWD:/repo" bridgecrew/checkov:3.3.17 \
+            --directory /repo \
+            --framework terraform helm kubernetes \
+            --compact --quiet
+
+  images:
+    name: Image vulnerabilities
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Install helm
+        uses: azure/setup-helm@v4
+
+      - name: List the images the charts actually deploy
+        run: |
+          for chart in helm/*/; do
+            helm template "$chart"
+          done | grep -oE 'image: "[^"]+"' | cut -d'"' -f2 | sort -u | tee images.txt
+
+      - name: Block the build on any critical vulnerability
+        run: |
+          status=0
+          while read -r image; do
+            echo "::group::$image"
+            docker run --rm aquasec/trivy:0.74.0 image \
+              --quiet --scanners vuln --pkg-types os \
+              --severity CRITICAL --exit-code 1 "$image" || status=1
+            echo "::endgroup::"
+          done < images.txt
+          exit $status
