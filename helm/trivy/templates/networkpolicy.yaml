@@ -1,0 +1,12 @@
+# The scan job only ever opens outbound connections, to the registry it scans and to the database. Nothing in the cluster has any reason to reach it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: trivy
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: trivy
+  policyTypes:
+    - Ingress

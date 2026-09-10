@@ -1,0 +1,13 @@
+# Checks this project deliberately does not enforce, with the reason for each. Written down here rather than silenced with a global soft fail, so every exception stays visible in the repository and can be challenged.
+skip-check:
+  # CKV_K8S_43, image should use digest.
+  # Every image is already pinned to an exact version tag, and those tags are never moved. Pinning by digest on top would make an upgrade unreadable in a diff for very little gain.
+  - CKV_K8S_43
+
+  # CKV_K8S_35, prefer secrets as files over environment variables.
+  # The postgres and grafana images read their credentials from environment variables by design. Mounting them as files would mean wrapping both entrypoints in a custom script, which adds more moving parts than it removes risk.
+  - CKV_K8S_35
+
+  # CKV_K8S_15, image pull policy should be Always.
+  # Always contradicts pinning exact versions, and would re-pull every image on every pod start. IfNotPresent is the correct policy when tags are immutable.
+  - CKV_K8S_15

@@ -33,6 +33,7 @@ jobs:
           docker run --rm -v "$PWD:/repo" bridgecrew/checkov:3.3.17 \
             --directory /repo \
             --framework terraform helm kubernetes \
+            --config-file /repo/.checkov.yaml \
             --compact --quiet
 
   images:
