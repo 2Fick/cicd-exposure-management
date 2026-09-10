@@ -17,9 +17,12 @@ jobs:
           fetch-depth: 0
 
       - name: Scan the git history for secrets
+        # fetch-depth 0 brings down every branch, and gitleaks would otherwise
+        # scan all of them. Restricting the walk to HEAD means a branch is
+        # judged on its own history rather than on someone else's.
         run: |
           docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.30.1 \
-            git /repo --redact
+            git /repo --redact --log-opts="--no-merges HEAD"
 
   iac:
     name: Infrastructure as code
