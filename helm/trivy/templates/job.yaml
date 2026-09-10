@@ -1,8 +1,10 @@
+{{- range $index, $target := .Values.targets }}
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: trivy-scan-{{ .Release.Revision }}
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  name: trivy-scan-{{ $.Release.Revision }}-{{ $index }}
+  namespace: {{ $.Values.namespace | default $.Release.Namespace }}
 spec:
   ttlSecondsAfterFinished: 3600
   backoffLimit: 1
@@ -18,16 +20,16 @@ spec:
         fsGroup: 10001
       initContainers:
         - name: trivy
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
           args:
             - image
             - --quiet
             - --scanners
             - vuln
             - --pkg-types
-            - {{ .Values.pkgTypes | quote }}
+            - {{ $.Values.pkgTypes | quote }}
             - --severity
-            - {{ .Values.severity | quote }}
+            - {{ $.Values.severity | quote }}
             # The default cache lives under /root, which a non root user
             # cannot write to
             - --cache-dir
@@ -36,7 +38,7 @@ spec:
             - json
             - --output
             - /reports/scan.json
-            - {{ .Values.target.image | quote }}
+            - {{ $target | quote }}
           securityContext:
             runAsNonRoot: true
             runAsUser: 10001
@@ -63,7 +65,7 @@ spec:
               memory: 2Gi
       containers:
         - name: loader
-          image: "{{ .Values.loader.repository }}:{{ .Values.loader.tag }}"
+          image: "{{ $.Values.loader.repository }}:{{ $.Values.loader.tag }}"
           command:
             - psql
             - -v
@@ -72,21 +74,21 @@ spec:
             - /sql/load.sql
           env:
             - name: PGHOST
-              value: {{ .Values.database.host | quote }}
+              value: {{ $.Values.database.host | quote }}
             - name: PGUSER
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.database.secret }}
+                  name: {{ $.Values.database.secret }}
                   key: POSTGRES_USER
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.database.secret }}
+                  name: {{ $.Values.database.secret }}
                   key: POSTGRES_PASSWORD
             - name: PGDATABASE
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.database.secret }}
+                  name: {{ $.Values.database.secret }}
                   key: POSTGRES_DB
           securityContext:
             runAsNonRoot: true
@@ -122,3 +124,4 @@ spec:
             name: trivy-loader-sql
         - name: tmp
           emptyDir: {}
+{{- end }}
