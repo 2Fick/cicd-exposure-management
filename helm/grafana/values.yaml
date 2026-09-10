@@ -15,3 +15,5 @@ database:
   name: scandata
   user: scanuser
   secret: postgres-credentials
+
+namespace: exposure

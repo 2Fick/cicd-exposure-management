@@ -3,6 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-dashboards
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
 data:
   exposure.json: |
 {{ .Files.Get "dashboards/exposure.json" | indent 4 }}

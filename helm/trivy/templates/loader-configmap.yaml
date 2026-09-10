@@ -3,6 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: trivy-loader-sql
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
 data:
   load.sql: |
     \set doc `cat /reports/scan.json`

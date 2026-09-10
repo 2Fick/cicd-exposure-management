@@ -4,6 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-datasources
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
 data:
   postgres.yaml: |
     apiVersion: 1

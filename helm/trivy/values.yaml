@@ -18,3 +18,5 @@ loader:
 database:
   host: postgres
   secret: postgres-credentials
+
+namespace: exposure

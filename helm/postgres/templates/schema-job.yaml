@@ -4,6 +4,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: postgres-schema
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     # Delete the previous run before starting a new one, a job spec is immutable

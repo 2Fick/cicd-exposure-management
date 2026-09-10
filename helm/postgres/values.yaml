@@ -11,3 +11,5 @@ storage:
 
 service:
   port: 5432
+  
+namespace: exposure

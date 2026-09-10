@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
 spec:
   # None makes this a headless service: no virtual IP, DNS resolves to the pod
   clusterIP: None
