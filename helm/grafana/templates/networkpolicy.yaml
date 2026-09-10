@@ -1,0 +1,17 @@
+# Grafana only accepts traffic on its web port
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: grafana
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: grafana
+  policyTypes:
+    - Ingress
+  ingress:
+    # The interface is reached through kubectl port-forward which does not come from a pod so the source cannot be narrowed any further
+    - ports:
+        - protocol: TCP
+          port: 3000
