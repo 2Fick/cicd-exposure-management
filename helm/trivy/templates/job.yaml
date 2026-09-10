@@ -9,6 +9,10 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        # Both containers run as this user, which is how the loader can read the report the scanner wrote on the shared volume
+        fsGroup: 10001
       initContainers:
         - name: trivy
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -21,22 +25,38 @@ spec:
             - {{ .Values.pkgTypes | quote }}
             - --severity
             - {{ .Values.severity | quote }}
+            # The default cache lives under /root, which a non root user
+            # cannot write to
+            - --cache-dir
+            - /cache
             - --format
             - json
             - --output
             - /reports/scan.json
             - {{ .Values.target.image | quote }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           volumeMounts:
             - name: cache
-              mountPath: /root/.cache/trivy
+              mountPath: /cache
             - name: reports
               mountPath: /reports
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 200m
               memory: 512Mi
             limits:
-
+              cpu: "1"
               memory: 2Gi
       containers:
         - name: loader
@@ -65,16 +85,29 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.database.secret }}
                   key: POSTGRES_DB
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           volumeMounts:
             - name: reports
               mountPath: /reports
             - name: sql
               mountPath: /sql
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 50m
               memory: 64Mi
             limits:
+              cpu: 200m
               memory: 256Mi
       volumes:
         - name: cache
@@ -84,3 +117,5 @@ spec:
         - name: sql
           configMap:
             name: trivy-loader-sql
+        - name: tmp
+          emptyDir: {}

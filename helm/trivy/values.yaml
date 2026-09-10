@@ -13,7 +13,7 @@ pkgTypes: "os"
 
 loader:
   repository: postgres
-  tag: "16"
+  tag: "16-alpine"
 
 database:
   host: postgres
