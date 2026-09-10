@@ -12,6 +12,9 @@ spec:
   # The database can take a while to accept connections on a cold start
   backoffLimit: 6
   template:
+    metadata:
+      labels:
+        app: postgres-schema  
     spec:
       restartPolicy: Never
       automountServiceAccountToken: false

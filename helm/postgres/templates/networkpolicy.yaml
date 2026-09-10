@@ -18,6 +18,9 @@ spec:
         - podSelector:
             matchLabels:
               app: trivy
+        - podSelector:
+            matchLabels:
+              app: postgres-schema
       ports:
         - protocol: TCP
           port: {{ .Values.service.port }}

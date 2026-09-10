@@ -63,3 +63,25 @@ jobs:
             echo "::endgroup::"
           done < images.txt
           exit $status
+
+  policy:
+    name: Custom policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Install helm
+        uses: azure/setup-helm@v4
+
+      - name: Render the charts into plain manifests
+        run: |
+          mkdir -p rendered
+          for chart in helm/*/; do
+            helm template "$chart" > "rendered/$(basename "$chart").yaml"
+          done
+
+      - name: Check the manifests against our own rules
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work \
+            openpolicyagent/conftest:v0.69.0 test -p policy rendered
