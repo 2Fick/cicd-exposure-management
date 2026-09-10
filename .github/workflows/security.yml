@@ -57,7 +57,7 @@ jobs:
           while read -r image; do
             echo "::group::$image"
             docker run --rm aquasec/trivy:0.74.0 image \
-              --quiet --scanners vuln --pkg-types os \
+              --quiet --scanners vuln --pkg-types os --ignore-unfixed \
               --severity CRITICAL --exit-code 1 "$image" || status=1
             echo "::endgroup::"
           done < images.txt

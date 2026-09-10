@@ -1,6 +1,6 @@
 image:
   repository: postgres
-  tag: "16"
+  tag: "16-alpine"
 
 database:
   name: scandata
@@ -11,4 +11,3 @@ storage:
 
 service:
   port: 5432
-
