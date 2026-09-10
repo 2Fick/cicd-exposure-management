@@ -17,6 +17,7 @@ spec:
         # Provisioning files are only read at startup, so changing them must
         # force a new pod. This checksum changes whenever the file changes.
         checksum/datasource: {{ include (print $.Template.BasePath "/datasource-configmap.yaml") . | sha256sum }}
+        checksum/dashboards: {{ include (print $.Template.BasePath "/dashboard-configmap.yaml") . | sha256sum }}        
     spec:
       securityContext:
         # The grafana image runs as user 472, this gives it write access to the
@@ -47,6 +48,10 @@ spec:
               mountPath: /etc/grafana/provisioning/datasources
             - name: data
               mountPath: /var/lib/grafana
+            - name: dashboard-provider
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: dashboards
+              mountPath: /var/lib/grafana/dashboards              
           readinessProbe:
             httpGet:
               path: /api/health
@@ -65,3 +70,9 @@ spec:
             name: grafana-datasources
         - name: data
           emptyDir: {}
+        - name: dashboard-provider
+          configMap:
+            name: grafana-dashboard-provider
+        - name: dashboards
+          configMap:
+            name: grafana-dashboards          

@@ -1,0 +1,8 @@
+# Loads the dashboard from a file outside templates, so helm does not try to interpret the grafana placeholders inside its jsonn
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+data:
+  exposure.json: |
+{{ .Files.Get "dashboards/exposure.json" | indent 4 }}

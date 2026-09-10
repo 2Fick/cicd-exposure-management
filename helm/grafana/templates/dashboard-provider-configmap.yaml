@@ -1,0 +1,17 @@
+# Tells grafana where to look for dashboard files on disk
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-provider
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: exposure
+        type: file
+        disableDeletion: true
+        # Edits made in the browser cannot be saved, the file stays the source
+        # of truth and the dashboard stays in git
+        allowUiUpdates: false
+        options:
+          path: /var/lib/grafana/dashboards 

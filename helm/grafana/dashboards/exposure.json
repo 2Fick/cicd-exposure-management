@@ -1,0 +1,145 @@
+{
+  "uid": "exposure",
+  "title": "CI/CD Exposure",
+  "tags": ["security"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-24h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Latest scan",
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "scandata" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "scandata" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT count(*) FILTER (WHERE v.severity = 'CRITICAL') AS \"Critical\", count(*) FILTER (WHERE v.severity = 'HIGH') AS \"High\", count(*) AS \"Total\" FROM vulnerabilities v WHERE v.scan_id = (SELECT id FROM scans ORDER BY scanned_at DESC LIMIT 1);"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "horizontal",
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "text" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Critical" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "High" },
+            "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }]
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Critical vulnerabilities over time",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 5 },
+      "datasource": { "type": "postgres", "uid": "scandata" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "scandata" },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT s.scanned_at AS time, s.target AS metric, count(*) FILTER (WHERE v.severity = 'CRITICAL') AS value FROM scans s LEFT JOIN vulnerabilities v ON v.scan_id = s.id WHERE $__timeFilter(s.scanned_at) GROUP BY s.scanned_at, s.target ORDER BY s.scanned_at;"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 6, "showPoints": "always", "fillOpacity": 10 },
+          "min": 0,
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      }
+    },
+    {
+      "id": 3,
+      "type": "barchart",
+      "title": "Packages with the most findings, latest scan",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 5 },
+      "datasource": { "type": "postgres", "uid": "scandata" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "scandata" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT v.package_name AS \"Package\", count(*) AS \"Findings\" FROM vulnerabilities v WHERE v.scan_id = (SELECT id FROM scans ORDER BY scanned_at DESC LIMIT 1) GROUP BY v.package_name ORDER BY count(*) DESC LIMIT 10;"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "orange" }, "min": 0 },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xTickLabelRotation": 0,
+        "showValue": "auto",
+        "legend": { "showLegend": false, "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single", "sort": "none" }
+      }
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Findings in the latest scan",
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 14 },
+      "datasource": { "type": "postgres", "uid": "scandata" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "scandata" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT v.cve_id AS \"CVE\", v.severity AS \"Severity\", v.package_name AS \"Package\", v.installed_version AS \"Installed\", coalesce(v.fixed_version, 'no fix') AS \"Fixed\", v.title AS \"Title\", v.primary_url AS \"Link\" FROM vulnerabilities v WHERE v.scan_id = (SELECT id FROM scans ORDER BY scanned_at DESC LIMIT 1) ORDER BY CASE v.severity WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 ELSE 3 END, v.cve_id;"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "filterable": true } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "CVE" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  { "title": "Open the advisory", "url": "${__data.fields.Link}", "targetBlank": true }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Link" },
+            "properties": [{ "id": "custom.hidden", "value": true }]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      }
+    }
+  ]
+}
