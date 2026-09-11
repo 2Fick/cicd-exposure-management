@@ -22,6 +22,49 @@ const L = {
   checkov: uri("checkov.png"),
 };
 
+// The two themes differ only in these tokens. The structure is identical, so
+// the light and the dark image always describe exactly the same architecture.
+const THEMES = {
+  dark: {
+    page: "#0d1117",
+    title: "#ffffff",
+    subtitle: "#98a2b3",
+    card: "#ffffff",
+    cardShadow: "0 2px 6px rgba(0,0,0,.45), 0 16px 36px rgba(0,0,0,.32)",
+    zoneBorder: "#c7ccd5",
+    zoneName: "#5b6270",
+    tileText: "#1a1d23",
+    logoChip: "none",
+    arrow: "#7d8796",
+    numOnPageBg: "#ffffff",
+    numOnPageFg: "#0d1117",
+    numOnCardBg: "#1a1d23",
+    numOnCardFg: "#ffffff",
+    labelOnPage: "#dbe1ea",
+    labelOnCard: "#2b3038",
+    tip: "#6f7784",
+  },
+  light: {
+    page: "#ffffff",
+    title: "#0d1117",
+    subtitle: "#5b6270",
+    card: "#161b22",
+    cardShadow: "0 2px 6px rgba(16,24,40,.14), 0 16px 36px rgba(16,24,40,.12)",
+    zoneBorder: "#3b434f",
+    zoneName: "#aab3c0",
+    tileText: "#e9edf3",
+    logoChip: "#ffffff",
+    arrow: "#5f6773",
+    numOnPageBg: "#16181d",
+    numOnPageFg: "#ffffff",
+    numOnCardBg: "#ffffff",
+    numOnCardFg: "#16181d",
+    labelOnPage: "#2b3038",
+    labelOnCard: "#dbe1ea",
+    tip: "#96a0ad",
+  },
+};
+
 const tile = (logo, name) => `
   <div class="tile"><img src="${L[logo]}" alt="${name}"><span>${name}</span></div>`;
 
@@ -34,25 +77,21 @@ const across = (n, ...labels) => `
 const down = (n, label) => `
   <div class="vconn"><span class="num dark">${n}</span><span class="lbl on-card">${label}</span><span class="tip">&darr;</span></div>`;
 
-const html = `<!doctype html>
+const page = (t) => `<!doctype html>
 <html><head><meta charset="utf-8"><style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     width: 1790px;
     font-family: "Segoe UI", system-ui, sans-serif;
-    background: #0d1117;
-    color: #e9edf3;
+    background: ${t.page};
     padding: 40px 44px 34px;
   }
-  h1 { font-size: 33px; font-weight: 700; letter-spacing: -0.4px; color: #fff; }
-  .sub { font-size: 17px; color: #98a2b3; margin-top: 6px; margin-bottom: 32px; }
+  h1 { font-size: 33px; font-weight: 700; letter-spacing: -0.4px; color: ${t.title}; }
+  .sub { font-size: 17px; color: ${t.subtitle}; margin-top: 6px; margin-bottom: 32px; }
 
   .canvas { display: flex; align-items: flex-start; }
 
-  .card {
-    border-radius: 12px; overflow: hidden; background: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,.45), 0 16px 36px rgba(0,0,0,.32);
-  }
+  .card { border-radius: 12px; overflow: hidden; background: ${t.card}; box-shadow: ${t.cardShadow}; }
   .head {
     display: flex; align-items: center; justify-content: center; gap: 9px;
     padding: 13px 14px; font-size: 17px; font-weight: 680; color: #fff;
@@ -64,34 +103,38 @@ const html = `<!doctype html>
   .h-gate    { background: #2a6fb8; }
   .h-cluster { background: #17786a; }
 
-  .zone { border: 1.5px dashed #c7ccd5; border-radius: 9px; padding: 26px 15px 15px; position: relative; }
+  .zone { border: 1.5px dashed ${t.zoneBorder}; border-radius: 9px; padding: 26px 15px 15px; position: relative; }
   .zone > .zname {
     position: absolute; top: 6px; left: 0; right: 0; text-align: center;
-    font-size: 13.5px; font-weight: 650; color: #5b6270;
+    font-size: 13.5px; font-weight: 650; color: ${t.zoneName};
   }
 
   .tiles { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
   .tile { width: 118px; text-align: center; }
-  .tile img { height: 46px; width: auto; max-width: 94px; object-fit: contain; }
-  .tile span { display: block; font-size: 14px; font-weight: 630; margin-top: 8px; color: #1a1d23; }
+  .tile img {
+    height: 46px; width: auto; max-width: 94px; object-fit: contain;
+    ${t.logoChip === "none" ? "" : `background: ${t.logoChip}; border-radius: 11px; padding: 7px 9px; box-sizing: content-box;`}
+  }
+  .tile span { display: block; font-size: 14px; font-weight: 630; margin-top: 8px; color: ${t.tileText}; }
 
   .connector { align-self: center; display: flex; flex-direction: column; align-items: center; padding: 0 12px; min-width: 176px; }
-  .connector .line { width: 100%; height: 3px; background: #7d8796; position: relative; }
+  .connector .line { width: 100%; height: 3px; background: ${t.arrow}; position: relative; }
   .connector .line::after {
     content: ""; position: absolute; right: -1px; top: -6.5px;
-    border-left: 14px solid #7d8796; border-top: 8px solid transparent; border-bottom: 8px solid transparent;
+    border-left: 14px solid ${t.arrow}; border-top: 8px solid transparent; border-bottom: 8px solid transparent;
   }
   .step { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
   .num {
-    width: 25px; height: 25px; border-radius: 50%; background: #fff; color: #0d1117;
+    width: 25px; height: 25px; border-radius: 50%;
+    background: ${t.numOnPageBg}; color: ${t.numOnPageFg};
     font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none;
   }
-  .num.dark { background: #1a1d23; color: #fff; }
-  .lbl { font-size: 14.5px; color: #dbe1ea; font-weight: 620; white-space: nowrap; }
-  .lbl.on-card { color: #2b3038; }
+  .num.dark { background: ${t.numOnCardBg}; color: ${t.numOnCardFg}; }
+  .lbl { font-size: 14.5px; color: ${t.labelOnPage}; font-weight: 620; white-space: nowrap; }
+  .lbl.on-card { color: ${t.labelOnCard}; }
 
   .vconn { display: flex; align-items: center; gap: 9px; justify-content: center; padding: 9px 0; }
-  .vconn .tip { font-size: 26px; color: #6f7784; line-height: .75; }
+  .vconn .tip { font-size: 26px; color: ${t.tip}; line-height: .75; }
 
   .verdicts { display: flex; gap: 18px; justify-content: center; }
   .mark {
@@ -178,5 +221,7 @@ const html = `<!doctype html>
 
 </body></html>`;
 
-fs.writeFileSync(path.join(__dirname, "diagram.html"), html);
-console.log("diagram.html written");
+for (const [name, tokens] of Object.entries(THEMES)) {
+  fs.writeFileSync(path.join(__dirname, `diagram-${name}.html`), page(tokens));
+  console.log(`diagram-${name}.html written`);
+}
