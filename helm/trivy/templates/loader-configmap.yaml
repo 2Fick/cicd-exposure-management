@@ -11,9 +11,13 @@ data:
     BEGIN;
 
     WITH new_scan AS (
-        INSERT INTO scans (scanner, target, target_type, scanned_at)
+        INSERT INTO scans (scanner, target, component, target_type, scanned_at)
         SELECT 'trivy',
                :'doc'::jsonb ->> 'ArtifactName',
+               -- target keeps the exact image, component keeps only the
+               -- repository, so upgrading a tag moves the same line on the
+               -- timeline instead of starting a second one
+               split_part(:'doc'::jsonb ->> 'ArtifactName', ':', 1),
                :'doc'::jsonb ->> 'ArtifactType',
                (:'doc'::jsonb ->> 'CreatedAt')::timestamptz
         RETURNING id

@@ -27,8 +27,15 @@ data:
         primary_url       TEXT
     );
 
+    -- CREATE TABLE IF NOT EXISTS never alters a table that already exists, so
+    -- a column added later needs its own statement to reach existing databases
+    ALTER TABLE scans
+        ADD COLUMN IF NOT EXISTS component TEXT;
+
     CREATE INDEX IF NOT EXISTS scans_scanned_at_idx
         ON scans (scanned_at);
+    CREATE INDEX IF NOT EXISTS scans_component_idx
+        ON scans (component);
     CREATE INDEX IF NOT EXISTS vulnerabilities_scan_id_idx
         ON vulnerabilities (scan_id);
     CREATE INDEX IF NOT EXISTS vulnerabilities_severity_idx

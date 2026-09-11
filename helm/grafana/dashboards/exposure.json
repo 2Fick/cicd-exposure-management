@@ -58,7 +58,7 @@
           "datasource": { "type": "postgres", "uid": "scandata" },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT s.scanned_at AS time, s.target AS metric, count(*) FILTER (WHERE v.severity = 'CRITICAL') AS value FROM scans s LEFT JOIN vulnerabilities v ON v.scan_id = s.id WHERE $__timeFilter(s.scanned_at) GROUP BY s.scanned_at, s.target ORDER BY s.scanned_at;"
+          "rawSql": "SELECT s.scanned_at AS time, coalesce(s.component, s.target) AS metric, count(*) FILTER (WHERE v.severity = 'CRITICAL') AS value FROM scans s LEFT JOIN vulnerabilities v ON v.scan_id = s.id WHERE $__timeFilter(s.scanned_at) GROUP BY s.scanned_at, coalesce(s.component, s.target) ORDER BY s.scanned_at;"
         }
       ],
       "fieldConfig": {
