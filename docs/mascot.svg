@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 132" width="120" height="132" role="img" aria-label="A shield being scanned layer by layer">
+  <defs>
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#38bdf8" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#7dd3fc" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </linearGradient>
+
+    <path id="shield" d="M60 6 L107 22 V66 C107 95 86 116 60 126 C34 116 13 95 13 66 V22 Z"/>
+
+    <clipPath id="inside">
+      <use href="#shield"/>
+    </clipPath>
+  </defs>
+
+  <!-- the three layers being inspected -->
+  <g clip-path="url(#inside)" stroke="#94a3b8" stroke-width="5" stroke-linecap="round" opacity="0.45">
+    <line x1="34" y1="47" x2="86" y2="47"/>
+    <line x1="34" y1="69" x2="86" y2="69"/>
+    <line x1="34" y1="91" x2="86" y2="91"/>
+  </g>
+
+  <!-- the scan sweeping down and back up -->
+  <g clip-path="url(#inside)">
+    <rect x="0" y="0" width="120" height="4" fill="url(#beam)">
+      <animate attributeName="y" values="16;120;16" dur="3.2s" keyTimes="0;0.5;1"
+               calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1" repeatCount="indefinite"/>
+    </rect>
+  </g>
+
+  <!-- two findings cleared, one blocked -->
+  <circle cx="86" cy="47" r="6" fill="#94a3b8">
+    <animate attributeName="fill" values="#94a3b8;#34d399;#34d399;#94a3b8"
+             keyTimes="0;0.16;0.96;1" dur="3.2s" repeatCount="indefinite"/>
+  </circle>
+
+  <circle cx="86" cy="69" r="6" fill="#94a3b8">
+    <animate attributeName="fill" values="#94a3b8;#34d399;#34d399;#94a3b8"
+             keyTimes="0;0.28;0.96;1" dur="3.2s" repeatCount="indefinite"/>
+  </circle>
+
+  <circle cx="86" cy="91" r="6" fill="#94a3b8">
+    <animate attributeName="fill" values="#94a3b8;#f87171;#f87171;#94a3b8"
+             keyTimes="0;0.40;0.96;1" dur="3.2s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="6;9;6;6;6"
+             keyTimes="0;0.42;0.5;0.96;1" dur="3.2s" repeatCount="indefinite"/>
+  </circle>
+
+  <use href="#shield" fill="none" stroke="url(#edge)" stroke-width="5" stroke-linejoin="round">
+    <animate attributeName="opacity" values="0.75;1;0.75" dur="3.2s" repeatCount="indefinite"/>
+  </use>
+</svg>
