@@ -1,57 +1,88 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 132" width="120" height="132" role="img" aria-label="A shield being scanned layer by layer">
-  <defs>
-    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#38bdf8"/>
-      <stop offset="1" stop-color="#2dd4bf"/>
-    </linearGradient>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 124" width="168" height="124" role="img" aria-label="A pipeline run splitting into a passing check and a failing one">
+  <style>
+    .seg { stroke-dasharray: 100; stroke-dashoffset: 100; }
+    .trunk  { animation: trunk  4.4s linear infinite; }
+    .pass   { animation: pass   4.4s linear infinite; }
+    .fail   { animation: fail   4.4s linear infinite; }
+    .okring { animation: okring 4.4s linear infinite; }
+    .oktick { animation: oktick 4.4s linear infinite; }
+    .koring { animation: koring 4.4s linear infinite; }
+    .kotick { animation: kotick 4.4s linear infinite; }
+    .trigger { animation: pulse 4.4s linear infinite; }
 
-    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#38bdf8" stop-opacity="0"/>
-      <stop offset="0.5" stop-color="#7dd3fc" stop-opacity="0.95"/>
-      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
-    </linearGradient>
+    @keyframes trunk {
+      0% { stroke-dashoffset: 100 }
+      9%, 93% { stroke-dashoffset: 0 }
+      97%, 100% { stroke-dashoffset: 100 }
+    }
+    @keyframes pass {
+      0%, 9% { stroke-dashoffset: 100 }
+      30%, 93% { stroke-dashoffset: 0 }
+      97%, 100% { stroke-dashoffset: 100 }
+    }
+    @keyframes okring {
+      0%, 30% { stroke-dashoffset: 100 }
+      40%, 93% { stroke-dashoffset: 0 }
+      97%, 100% { stroke-dashoffset: 100 }
+    }
+    @keyframes oktick {
+      0%, 40% { stroke-dashoffset: 100 }
+      47%, 93% { stroke-dashoffset: 0 }
+      97%, 100% { stroke-dashoffset: 100 }
+    }
+    @keyframes fail {
+      0%, 50% { stroke-dashoffset: 100 }
+      68%, 93% { stroke-dashoffset: 0 }
+      97%, 100% { stroke-dashoffset: 100 }
+    }
+    @keyframes koring {
+      0%, 68% { stroke-dashoffset: 100 }
+      78%, 93% { stroke-dashoffset: 0 }
+      97%, 100% { stroke-dashoffset: 100 }
+    }
+    @keyframes kotick {
+      0%, 78% { stroke-dashoffset: 100 }
+      85%, 93% { stroke-dashoffset: 0 }
+      97%, 100% { stroke-dashoffset: 100 }
+    }
+    @keyframes pulse {
+      0%, 1% { stroke-width: 5 }
+      5% { stroke-width: 8 }
+      10%, 100% { stroke-width: 5 }
+    }
+  </style>
 
-    <path id="shield" d="M60 6 L107 22 V66 C107 95 86 116 60 126 C34 116 13 95 13 66 V22 Z"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
 
-    <clipPath id="inside">
-      <use href="#shield"/>
-    </clipPath>
-  </defs>
+    <!-- the track a run travels along -->
+    <g stroke="#8b95a5" stroke-width="5" opacity="0.26">
+      <path d="M49 62 H70"/>
+      <path d="M70 62 C84 62 84 36 98 36 H112"/>
+      <path d="M70 62 C84 62 84 88 98 88 H112"/>
+      <circle cx="128" cy="36" r="15"/>
+      <circle cx="128" cy="88" r="15"/>
+    </g>
 
-  <!-- the three layers being inspected -->
-  <g clip-path="url(#inside)" stroke="#94a3b8" stroke-width="5" stroke-linecap="round" opacity="0.45">
-    <line x1="34" y1="47" x2="86" y2="47"/>
-    <line x1="34" y1="69" x2="86" y2="69"/>
-    <line x1="34" y1="91" x2="86" y2="91"/>
+    <!-- the run advancing, then splitting in two -->
+    <path class="seg trunk" d="M49 62 H70" stroke="#2088ff" stroke-width="5" pathLength="100"/>
+    <path class="seg pass" d="M70 62 C84 62 84 36 98 36 H112" stroke="#2088ff" stroke-width="5" pathLength="100"/>
+    <path class="seg fail" d="M70 62 C84 62 84 88 98 88 H112" stroke="#2088ff" stroke-width="5" pathLength="100"/>
+
+    <!-- the branch that passed -->
+    <g stroke="#3fb950" stroke-width="5">
+      <circle class="seg okring" cx="128" cy="36" r="15" pathLength="100"/>
+      <path class="seg oktick" d="M121 36 l5 6 l10 -12" pathLength="100"/>
+    </g>
+
+    <!-- the branch the gate refused -->
+    <g stroke="#f85149" stroke-width="5">
+      <circle class="seg koring" cx="128" cy="88" r="15" pathLength="100"/>
+      <path class="seg kotick" d="M122 82 l12 12 M134 82 l-12 12" pathLength="100"/>
+    </g>
+
+    <!-- the trigger -->
+    <circle class="trigger" cx="30" cy="62" r="19" stroke="#2088ff" stroke-width="5"/>
+    <path d="M25 53 L41 62 L25 71 Z" fill="#2088ff" stroke="none"/>
+
   </g>
-
-  <!-- the scan sweeping down and back up -->
-  <g clip-path="url(#inside)">
-    <rect x="0" y="0" width="120" height="4" fill="url(#beam)">
-      <animate attributeName="y" values="16;120;16" dur="3.2s" keyTimes="0;0.5;1"
-               calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1" repeatCount="indefinite"/>
-    </rect>
-  </g>
-
-  <!-- two findings cleared, one blocked -->
-  <circle cx="86" cy="47" r="6" fill="#94a3b8">
-    <animate attributeName="fill" values="#94a3b8;#34d399;#34d399;#94a3b8"
-             keyTimes="0;0.16;0.96;1" dur="3.2s" repeatCount="indefinite"/>
-  </circle>
-
-  <circle cx="86" cy="69" r="6" fill="#94a3b8">
-    <animate attributeName="fill" values="#94a3b8;#34d399;#34d399;#94a3b8"
-             keyTimes="0;0.28;0.96;1" dur="3.2s" repeatCount="indefinite"/>
-  </circle>
-
-  <circle cx="86" cy="91" r="6" fill="#94a3b8">
-    <animate attributeName="fill" values="#94a3b8;#f87171;#f87171;#94a3b8"
-             keyTimes="0;0.40;0.96;1" dur="3.2s" repeatCount="indefinite"/>
-    <animate attributeName="r" values="6;9;6;6;6"
-             keyTimes="0;0.42;0.5;0.96;1" dur="3.2s" repeatCount="indefinite"/>
-  </circle>
-
-  <use href="#shield" fill="none" stroke="url(#edge)" stroke-width="5" stroke-linejoin="round">
-    <animate attributeName="opacity" values="0.75;1;0.75" dur="3.2s" repeatCount="indefinite"/>
-  </use>
 </svg>
