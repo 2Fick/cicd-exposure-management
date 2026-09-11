@@ -63,7 +63,7 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 6, "showPoints": "always", "fillOpacity": 10 },
+          "custom": { "drawStyle": "line", "lineWidth": 2, "pointSize": 7, "showPoints": "always", "fillOpacity": 10, "spanNulls": true },
           "min": 0,
           "color": { "mode": "palette-classic" }
         },
