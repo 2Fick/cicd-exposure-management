@@ -7,7 +7,7 @@ image:
 # the choice of base image actually costs.
 targets:
   - "alpine:3.10"
-  - "nginx:1.14.2"
+  - "nginx:1.31-alpine"
   - "debian:10"
   - "python:3.9-slim"
   - "postgres:16-alpine"
